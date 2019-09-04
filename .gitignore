@@ -1,3 +1,5 @@
 *.json
 *.csv
-Pipfile.lock
+packrat
+!packrat/packrat.lock
+!packrat/packrat.opts
