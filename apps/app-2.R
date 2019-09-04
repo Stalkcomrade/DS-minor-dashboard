@@ -9,6 +9,7 @@ app2 <- Dash$new()
 
 ## defines layout
 app2$layout(
+  htmlH3("App2"),
   dccInput(id = "inputID", value = "initial value", type = "text"),
   htmlDiv(id = "outputID"),
 )

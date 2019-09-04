@@ -41,7 +41,7 @@ page_1_layout = htmlDiv(children = list(
 
 
 page_2_layout = htmlDiv(children = list(
-  htmlH3("App 2"),
+  htmlH3("App 22"),
   dccInput(id = "inputID", value = "initial value", type = "text"),
   htmlDiv(id = "outputID"),
   ## should be carefull with nested lists
@@ -84,4 +84,4 @@ app$callback(output = list(id = "page-content", property = "children"),
              )
 
 
-app$run_server(showcase = TRUE, debug = TRUE)
+app$run_server(showcase = TRUE, debug = TRUE, threaded = TRUE, dev_tools_ui = TRUE)

@@ -5,8 +5,6 @@ import os
 
 import pdb
 
-
-
 ## don't push ids
 client_id = ""
 client_secret = ""

@@ -1,7 +1,7 @@
+## TODO: install.packages(import)
 # install.packages('devtools')
 # library(devtools)
 #install_github("plotly/dashR") # installs dashHtmlComponents, dashCoreComponents, and dashTable
-
 # load deps
 
 library(dash)
@@ -9,12 +9,12 @@ library(dashHtmlComponents)
 library(dashCoreComponents)
 library(dashTable)
 
-## TODO: install.packages(import)
-
 
 app1 <- Dash$new()
 ## defines layout
+
 app1$layout(
+  htmlH3("App1"),
   dccInput(id = "inputID", value = "initial value", type = "text"),
   htmlDiv(id = "outputID"),
   htmlImg(id = "Plot1", src = "./assets/test.png")
