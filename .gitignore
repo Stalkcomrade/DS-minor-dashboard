@@ -1,10 +1,9 @@
 *.json
 *.csv
-packrat
+
+packrat/*
 !packrat/packrat.lock
 !packrat/packrat.opts
 packrat/lib*/
 
-!data
-!data/*/*/
-data/*/*/*
+venv
