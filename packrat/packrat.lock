@@ -116,11 +116,6 @@ GithubRepo: dashR
 GithubUsername: plotly
 GithubRef: master
 GithubSha1: d080de491e93e635072a12a08d95e6bd50e0129c
-RemoteHost: api.github.com
-RemoteRepo: dashR
-RemoteUsername: plotly
-RemoteRef: master
-RemoteSha: d080de491e93e635072a12a08d95e6bd50e0129c
 
 Package: dashCoreComponents
 Source: github
@@ -130,11 +125,6 @@ GithubRepo: dash-core-components
 GithubUsername: plotly
 GithubRef: cc1e654
 GithubSha1: cc1e654729204d0bd238c76fb3de11dcf8bc3d30
-RemoteHost: api.github.com
-RemoteRepo: dash-core-components
-RemoteUsername: plotly
-RemoteRef: cc1e654
-RemoteSha: cc1e654729204d0bd238c76fb3de11dcf8bc3d30
 
 Package: dashHtmlComponents
 Source: github
@@ -144,11 +134,6 @@ GithubRepo: dash-html-components
 GithubUsername: plotly
 GithubRef: 17da1f4
 GithubSha1: 17da1f4efdea34d5473c27d63582245e246bcf1d
-RemoteHost: api.github.com
-RemoteRepo: dash-html-components
-RemoteUsername: plotly
-RemoteRef: 17da1f4
-RemoteSha: 17da1f4efdea34d5473c27d63582245e246bcf1d
 
 Package: dashTable
 Source: github
@@ -158,11 +143,6 @@ GithubRepo: dash-table
 GithubUsername: plotly
 GithubRef: 042ad65
 GithubSha1: 042ad6568006f59fd76dd1a6696bdf493d5a5c57
-RemoteHost: api.github.com
-RemoteRepo: dash-table
-RemoteUsername: plotly
-RemoteRef: 042ad65
-RemoteSha: 042ad6568006f59fd76dd1a6696bdf493d5a5c57
 
 Package: data.table
 Source: CRAN
@@ -500,11 +480,6 @@ GithubRepo: reqres
 GithubUsername: plotly
 GithubRef: 55072ab
 GithubSha1: 55072abfba41db034deb25f613fdf7fa97e0c4f5
-RemoteHost: api.github.com
-RemoteRepo: reqres
-RemoteUsername: plotly
-RemoteRef: 55072ab
-RemoteSha: 55072abfba41db034deb25f613fdf7fa97e0c4f5
 
 Package: reshape2
 Source: CRAN

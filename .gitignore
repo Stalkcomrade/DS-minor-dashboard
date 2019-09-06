@@ -4,6 +4,7 @@
 packrat/*
 !packrat/packrat.lock
 !packrat/packrat.opts
+!packrat/init.R
 packrat/lib*/
 
 venv
