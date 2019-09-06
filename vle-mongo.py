@@ -46,7 +46,6 @@ print(tempList)
 #### 
 
 
-
 ## TODO: read individual jsonl files from a remote server
 
 # if __name__== "__main__":
