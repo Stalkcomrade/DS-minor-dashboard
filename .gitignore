@@ -5,6 +5,6 @@ packrat
 !packrat/packrat.opts
 packrat/lib*/
 
-data
-data/.*/.*/.*
-!data/.*/.*/
+!data
+!data/*/*/
+data/*/*/*
