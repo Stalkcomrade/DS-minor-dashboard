@@ -6,5 +6,5 @@ packrat/*
 !packrat/packrat.opts
 !packrat/init.R
 packrat/lib*/
-
 venv
+packrat/src/

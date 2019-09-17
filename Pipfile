@@ -9,6 +9,8 @@ pylint = "*"
 [packages]
 pymongo = "*"
 requests = "*"
+pandas = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.6"

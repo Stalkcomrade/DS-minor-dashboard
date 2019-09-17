@@ -1,257 +1,127 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+if(length(args) > 0) {
+  packrat::on("DS-minor-dashboard")
+  }
+
 library(magrittr)
 library(dplyr)
 library(lubridate)
 library(stringr)
 library(readr)
 
-library(googlesheets)
-
 library(rjson)
 library(RJSONIO)
 
-library(doMC)
-library(foreach)
+library(furrr)
+library(purrr)
 
+library(here)
+
+main_path = here::here("DS-minor-dashboard")
 path = "/srv/store/principal/audit/r-console/"
-# data <- fromJSON(sprintf("[%s]", paste(readLines("~/share/research/minor/2017_logs/addmitriev_1.jsonl"),collapse=",")))
+list_names = list.files(path = path)
 
 
-line = RJSONIO::fromJSON(d)
+## only jsonl without an extension is returned
+list_names_trunc = purrr::map(list_names, .f = function(x) {
+  if (str_detect(x, ".jsonl")) { 
+    return(x) 
+  }
+}) %>% purrr::flatten_chr() ## returns vector
 
-lapply(d, function(logline) {
-  line = RJSONIO::fromJSON(logline)
-  return(data.frame(username=line$username))
-})
+
+## FIXME: register parallel BEFORE returning future_map
+## run in parallel
+## https://davisvaughan.github.io/furrr/
 
 
-
-path <- "WHERE/YOUR/JSON/IS/SAVED"
-c <- file("~/share/research/minor/2017_logs/addmitriev_1.jsonl", "r")
-
-d = readLines(c, -1L) %>% enc2utf8()
-# json <- lapply(X=d, fromJSON)
-# d = readLines("~/share/research/minor/2017_logs/addmitriev_1.jsonl", -1L) %>% enc2utf8()
-
-j = parselog(d)
-j = RJSONIO::fromJSON(d)
-
-parselog = function(log){
-  data = lapply(log, function(logline){
-    line = RJSONIO::fromJSON(logline)
-    return(data.frame(timestamp = line$timestamp, 
-                      data = line$data,
-                      type = line$type, 
-                      username=line$username,
-                      pid=line$pid))
-  })
+#' parses EACH LINE == entry of jsonl
+#'
+#' @param fullpath - fullpath to JSONL
+#'
+#' @return dataframe with user's logs
+#' @export
+#'
+#' @examples
+prepare_user_log = function(fullpath) {
   
-  activity = plyr::rbind.fill(data)
-  activity$time = as.POSIXct(round(activity$timestamp/1000), origin="1970-01-01")
+  personal_log = fullpath %>% 
+    readLines(-1L, warn = FALSE) %>% enc2utf8() %>% purrr::map(function(entry) {
+      
+      # COL <<- COL + 1
+      ## returns one line of individual log
+      ## validating wrong json lines
+      ## and omitting them
+      if(jsonlite::validate(entry)) {
+        
+        interm_df = entry %>% RJSONIO::fromJSON()
+        df_to_return =  data.frame(timestamp =  interm_df$timestamp, 
+                                   # data =     interm_df$data,
+                                   type =     as.character(interm_df$type), 
+                                   username = as.character(interm_df$username),
+                                   pid =      interm_df$pid)
+        return(df_to_return)
+      }
+    }) %>% plyr::rbind.fill()
   
+  return(personal_log)
   
-  activity$weekday = ordered(weekdays(activity$time), levels=c("Понедельник",
-                                                               "Вторник",
-                                                               "Среда",
-                                                               "Четверг",
-                                                               "Пятница",
-                                                               "Суббота",
-                                                               "Воскресенье"
-                                                              ))
-  
-  activity
 }
 
 
-
-list.names = list.files(path = path)
-list.names = str_replace_all(list.names,".jsonl","")
-
-
-
-# # Choosing particular student
-# list.names = list.names[list.names == "addmitriev_1"]
-# d = readLines("~/share/research/minor/2017_logs/addmitriev_1.jsonl") %>% enc2utf8()
-
-# # clean <- str_replace_all(d,'\\', "")
-# d = gsub("\\", "", d, fixed=TRUE)
-
-# j = d %>% parselog()
-# j = d %>% fromJSON()
-# readLines(str_c(path, "pozdniakovs", ".jsonl")) %>% enc2utf8() %>% parselog()  %>%  head()
-
-
-# registerDoMC(8)
-
-# l = foreach(person = list.names, .combine='rbind', .inorder=FALSE) %dopar% {
-#   tryCatch({
-#     readLines(str_c(path, person, ".jsonl")) %>% enc2utf8() %>% parselog()
-#   },
-#         error=function(e) {
-#         }
-#   )
-# }
-
-# # write_csv("~/share/research/minor/r-console/logs_v3.csv", x = l)
-
-
-
-
-
-# ### TODO: check it out
-# library(tidyjson)
-# tmp = jsonlite::stream_in(file("~/share/research/minor/2017_logs/addmitriev_1.jsonl"))
-
-
-
-
-
-# ## title: "vle_log_2_new_both_cohorts"
-# ## title: "vle_log_2_new_both_cohorts"
-
-
-# path = "/principal/audit/r-console/"
-
-
-# # for bash script
-
-
-# list.names = list.files(path = path)
-# list.names = str_replace_all(list.names,".jsonl","")
-# list.names = setdiff(list.names, logs2$username %>% as.character() %>% unique()) # trying to find
-
-
-# writeLines("~/share/research/minor/list.names", text = list.names, sep = "\n")
-
-
-# # /srv/store/principal/audit/r-console - главное, не перезатереть!!!!!
-# #setwd("~/share/research/minor/r-console/v2/r-console") # от 11 декабря
-
-# parselog = function(log){
-#   data = lapply(log, function(logline){
-#     line = RJSONIO::fromJSON(logline)
-#     return(data.frame(timestamp = line$timestamp, 
-#                       #data = line$data,
-#                       type = line$type, 
-#                       username=line$username,
-#                       pid=line$pid))
-#   })
+#' Read individual logs of server users
+#'
+#' @param x - identifier for the logs to be read from 1 to x
+#' @param future_version - whether to use with future or not
+#'
+#' @return returns combined logs of several users
+#' @export 
+#'
+#' @examples
+synch_parse_logs = function(x, future_version) {
   
-#   activity = plyr::rbind.fill(data)
-#   activity$time = as.POSIXct(round(activity$timestamp/1000), origin="1970-01-01")
+  ## preparing for futures
+  # plan(multiprocess)
   
+  no_cores <- availableCores() - 1
+  plan(multicore, workers = no_cores)
+
+  ## checks which function to use
+  mapper = ifelse(future_version, future_map, purrr::map)
   
-#   activity$weekday = ordered(weekdays(activity$time), levels=c("Понедельник",
-#                                                                "Вторник",
-#                                                                "Среда",
-#                                                                "Четверг",
-#                                                                "Пятница",
-#                                                                "Суббота",
-#                                                                "Воскресенье"
-#                                                               ))
+  ## parses individual logs of each user
+  final_list_of_logs = list_names_trunc[1:x] %>% mapper(function(jsonl) {
+    
+    fullpath = str_c(path, jsonl)
+    
+    ## binding dataframes from list
+    activity = prepare_user_log(fullpath)
+    
+    return(activity)
+       
+  })
   
-#   activity
-# }
-
-
-
-# list.names = list.files(path = path)
-# list.names = str_replace_all(list.names,".jsonl","")
-
-# # matching with 2nd year students' names
-# # gs_key("1k1RceJMNdRsLMfHx0M0egK-NMdwu0qxGUWuPvjkfyd4") %>% gs_browse()
-# tmp = gs_key("1k1RceJMNdRsLMfHx0M0egK-NMdwu0qxGUWuPvjkfyd4") %>% gs_read(ws = 1) %>% dplyr::select(name) # ведомость посещений
-
-# logins2 = tmp$name
-# nm = intersect(logins2, list.names) # 2 курс
-# setdiff(logins2, list.names) # у них не было логов (не заходили)
+  return(final_list_of_logs)
   
+}
 
 
+#' Writes csv file to data/raw/vle
+#'
+#' @param x - data frame to write
+#'
+#' @return
+#' @export
+#'
+#' @examples
+write_personal_log = function(x) {
+  write_csv(x = x, path = str_c(main_path, sprintf("/data/raw/vle/%s.csv", levels(x$username))))
+}
 
-# list.names = list.files(path = "~/share/research/minor/r-console/.")
-# list.names = str_replace_all(list.names,".jsonl","")
+## making callable from the command line
+## example: Rscript reading_logs.R 10 TRUE
 
-# registerDoMC(8)
-# l = foreach(person=list.names, .combine='rbind', .inorder=FALSE) %dopar% {
-#   tryCatch({
-#     readLines(str_c(path, person, ".jsonl")) %>% enc2utf8() %>% parselog()
-#   },
-#         error=function(e) {
-#         }
-#   )
-# }
-
-# write_csv("~/share/research/minor/vle/r-console/logs_v4.csv", x = l)
-
-
-
-# # 2-3 курс отдельный лог
-# list.names = list.files(path = "~/share/research/minor/r-console/v2/r-console/.")
-# list.names = str_replace_all(list.names,".jsonl","")
-
-# nm = list.names
-# registerDoMC(8)
-
-# l = foreach(person=nm, .combine='rbind', .inorder=FALSE) %dopar% {
-#   tryCatch({
-#     readLines(str_c("~/share/research/minor/r-console/v2/r-console/",person, ".jsonl")) %>% enc2utf8() %>% parselog()
-#   },
-#         error=function(e) {
-#         }
-#   )
-# }
-
-
-# # Checking whether logs of all users are extracted
-# # setdiff(logs2$username %>% as.character() %>% unique(), list.names)
-# setdiff(list.names, logs2$username %>% as.character() %>% unique()) # trying to find
-
-# # nm = "gzmamedov"
-
-# l = foreach(person=nm, .combine='rbind', .inorder=FALSE) %dopar% {
-#   tryCatch({
-#     parselog(readLines(str_c("~/share/research/minor/r-console/v2/r-console/",person, ".jsonl")))
-#   },
-#         error=function(e) {
-#         }
-#   )
-# }
-
-
-
-
-# library(ndjson)
-# ndjson::stream_in()
-
-# # Parselog alt
-# parselog = function(log){
-#   data = lapply(log, function(logline){
-#     line = purrr::map(logline, jsonlite::fromJSON)
-#     return(data.frame(timestamp = line$timestamp, 
-#                       #data = line$data,
-#                       type = line$type, 
-#                       username=line$username,
-#                       pid=line$pid))
-#   })
-  
-#   activity = plyr::rbind.fill(data)
-#   activity$time = as.POSIXct(round(activity$timestamp/1000), origin="1970-01-01")
-  
-  
-#   activity$weekday = ordered(weekdays(activity$time), levels=c("Понедельник",
-#                                                                "Вторник",
-#                                                                "Среда",
-#                                                                "Четверг",
-#                                                                "Пятница",
-#                                                                "Суббота",
-#                                                                "Воскресенье"
-#                                                               ))
-  
-#   activity
-# }
-
-
-# tmp = readLines(str_c("~/share/research/minor/r-console/v3/r-console/aabakhitova.jsonl")) %>% enc2utf8() %>% parselog()
-# tmp = stream_in(file("~/share/research/minor/r-console/v3/r-console/aabakhitova.jsonl") %>% enc2utf8())
-
-
+logs_list = synch_parse_logs(args[1], args[2])
+logs_list %>% future_map(.f = ~write_personal_log(.x))
