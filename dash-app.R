@@ -1,3 +1,11 @@
+## TODO: fix issues with local/global paths
+
+## on init
+# packrat::on("DS-minor-dashboard")
+
+## binds remote port to the local one
+## ssh stlkcmrd@r.piterdata.ninja -L 8050:127.0.0.1:8050 -N
+
 library(dash)
 library(dashHtmlComponents)
 library(dashCoreComponents)
@@ -6,17 +14,32 @@ library(dashTable)
 library(stringr)
 library(tidyverse)
 
+library(here)
+
+setwd("~/DS-minor-dashboard")
+
 app <- Dash$new()
 
 ## TODO: as input
-stepik_ranks = read_csv("./course_df_3122.csv")
+##### middleware
 
+list_course = list.files("./data/processed/stepik/course_1403")
 
-## TODO: make a structure for a project
+stepik_ranks = list_course %>% purrr::map(function(page) {
+  str_c(getwd(), "/", "data/processed/stepik/course_1403/", page) %>% read_csv()
+}) %>% plyr::rbind.fill()
 
-## import 
-## import::here(app2, .from = "./apps/app-2.R")
-## import::here(app1, .from = "./apps/dash-app.R")
+# stepik_ranks = read_csv(here("DS-minor-dashboard/data/processed/stepik/course_1403/course_df_1403_page_1.csv"))
+
+##### middleware
+
+## a structure for a project
+## modularises apps into seperate files and exports them
+source(file.path("./apps/app-1.R"))
+source(file.path("./apps/app-2.R"))
+source(file.path("./apps/app-stepik.R"))
+source(file.path("./apps/app-vle.R"))
+
 
 ## defines layout
 app$layout(
@@ -28,55 +51,30 @@ app$layout(
 
 ## way to define custom elements
 index_page = htmlDiv(children = list(
-  dccLink('Go to App 1', href = '/apps/dash-app'),
+  dccLink('Go to App 1',      href = '/apps/app-1'),
   htmlBr(),
-  dccLink('Go to App 2', href = '/apps/app-2'))
-  )
-
-page_1_layout = htmlDiv(children = list(
-  htmlH3("App 1"),
-  htmlImg(id = "Plot1", src = "../assets/test.png")
-))
-
+  dccLink('Go to App 2',      href = '/apps/app-2'),
+  htmlBr(),
+  dccLink('Go to App Stepik', href = '/apps/app-stepik'),
+  htmlBr(),
+  dccLink('Go to App VLE',    href = '/apps/app-vle')
+  ))
 
 
-page_2_layout = htmlDiv(children = list(
-  htmlH3("App 22"),
-  dccInput(id = "inputID", value = "initial value", type = "text"),
-  htmlDiv(id = "outputID"),
-  ## should be carefull with nested lists
-  dccGraph(id = "giraffe",
-           figure = list(
-             data = list(list(x = c(1,2,3), y = c(3,2,8), type = 'bar')),
-             layout = list(title = "Let's Dance!")
-           )
-           ),
-  dccGraph(id = "giraffe-2",
-           figure = list(
-             data = list(list(x = as.character(stepik_ranks$user), y = stepik_ranks$rank, type = 'bar')),
-             layout = list(title = "Students' Ranks", xaxis = list(type = "category",
-                                                                   title = list(text = "x axis")))
-           )
-           )
-))
-
-## page 2 calback
-app$callback(output = list(id = 'page-2-content', property = 'children'),
-             params = list(input(id = 'page-2-dropdown', property = 'value')),
-             function(value) {
-               return(stringr::str_c('You have selected ', value))
-             }
-             )
 
 
 # specifies relationship between elements
 app$callback(output = list(id = "page-content", property = "children"), 
              params = list(input(id = "url", property = "pathname")), 
              function(pathname) {
-               if (pathname == '/apps/dash-app') {
-                 return(page_2_layout)
-               } else if (pathname == '/apps/app-2') {
+               if (pathname == '/apps/app-1') {
                  return(page_1_layout)
+               } else if (pathname == '/apps/app-2') {
+                 return(page_2_layout)
+               } else if (pathname == "/apps/app-stepik") {
+                 return(page_stepik_layout)
+               } else if (pathname == "/apps/app-vle"){
+                 return(page_vle_layout)
                } else {
                  return(index_page)
                }
@@ -85,3 +83,4 @@ app$callback(output = list(id = "page-content", property = "children"),
 
 
 app$run_server(showcase = TRUE, debug = TRUE, threaded = TRUE, dev_tools_ui = TRUE)
+               # host = "192.168.0.232")

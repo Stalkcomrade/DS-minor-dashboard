@@ -7,4 +7,3 @@ packrat/*
 !packrat/init.R
 packrat/lib*/
 venv
-packrat/src/

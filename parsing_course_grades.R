@@ -1,8 +1,27 @@
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 
+
+if(length(args) == 0) {
+  packrat::on()
+  args = c(1403)
+}
+
 library(tidyverse)
-library(jsonlite)
+# library(jsonlite)
+
+## FIXME:
+setwd("/students/stlkcmrd/DS-minor-dashboard")
+
+
+## FIXME: replace Nulls with zeros (for now)
+rewrite_nulls = function(x) {
+  if (is.null(x)) {
+    return(0)
+  } else {
+    return(x)
+  }
+}
 
 ## change paths
 ## prepare function
@@ -18,16 +37,7 @@ prepare_students_reports = function(course_id) {
     dir.create(sprintf("./data/processed/stepik/course_%s", course_id))
   }
 
-
-## FIXME: replace Nulls with zeros (for now)
-rewrite_nulls = function(x) {
-  if (is.null(x)) {
-    return(0)
-  } else {
-    return(x)
-  }
-}
-
+browser()
 ## iterates over all json files 
 
 i = 0

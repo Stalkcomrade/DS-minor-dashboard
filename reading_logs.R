@@ -3,6 +3,8 @@ args = commandArgs(trailingOnly=TRUE)
 
 if(length(args) > 0) {
   packrat::on("DS-minor-dashboard")
+} else {
+  args = list(5, TRUE)
   }
 
 library(magrittr)
@@ -18,6 +20,10 @@ library(furrr)
 library(purrr)
 
 library(here)
+
+library(tictoc)
+
+tic("future")
 
 main_path = here::here("DS-minor-dashboard")
 path = "/srv/store/principal/audit/r-console/"
@@ -85,14 +91,14 @@ synch_parse_logs = function(x, future_version) {
   ## preparing for futures
   # plan(multiprocess)
   
-  no_cores <- availableCores() - 1
-  plan(multicore, workers = no_cores)
+  options(mc.cores = 4)
+  plan(multisession)
 
   ## checks which function to use
-  mapper = ifelse(future_version, future_map, purrr::map)
   
   ## parses individual logs of each user
-  final_list_of_logs = list_names_trunc[1:x] %>% mapper(function(jsonl) {
+  # browser()
+  final_list_of_logs = list_names_trunc[1:x] %>% future_map(function(jsonl) {
     
     fullpath = str_c(path, jsonl)
     
@@ -104,6 +110,7 @@ synch_parse_logs = function(x, future_version) {
   })
   
   return(final_list_of_logs)
+  # final_list_of_logs
   
 }
 
@@ -123,5 +130,11 @@ write_personal_log = function(x) {
 ## making callable from the command line
 ## example: Rscript reading_logs.R 10 TRUE
 
-logs_list = synch_parse_logs(args[1], args[2])
-logs_list %>% future_map(.f = ~write_personal_log(.x))
+logs_list = synch_parse_logs(args[[1]], args[[2]])
+
+# print(logs_list[3])
+
+# logs_list %>% future_map(.f = ~write_personal_log(.x))
+toc()
+
+# logs_list
